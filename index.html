@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Payment Affordability Analyzer</title>
+    <style>
+        :root {
+            --bg: #0f172a; --card: #1e293b; --text: #f8fafc;
+            --primary: #38bdf8; --success: #4ade80; --warning: #fbbf24;
+            --danger: #f87171; --border: #334155; --subtext: #94a3b8;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; overflow-x: hidden; }
+        .wrapper { max-width: 1400px; margin: 0 auto; }
+
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .payment-amount { font-size: 2.5rem !important; }
+            .breakdown-value { font-size: 1rem !important; }
+            .verdict-title { font-size: 1.2rem !important; }
+            .verdict-icon { font-size: 2rem !important; }
+            .health-value { font-size: 1.5rem !important; }
+            #total-wealth { font-size: 2.5rem !important; }
+            .viz-card { padding: 20px !important; }
+            .timeline-label { min-width: 120px !important; font-size: 0.7rem !important; }
+            .timeline-amount { min-width: 80px !important; font-size: 0.9rem !important; }
+            .wealth-grid-2col { grid-template-columns: 1fr !important; }
+        }
+
+        .wealth-grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid var(--border); flex-wrap: wrap; }
+        .tab { padding: 12px 24px; background: transparent; border: none; color: var(--subtext); cursor: pointer; font-size: 0.9rem; font-weight: 600; border-bottom: 3px solid transparent; transition: 0.2s; }
+        .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+        .tab:hover { color: var(--text); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .grid { display: grid; grid-template-columns: 380px 1fr; gap: 30px; }
+        @media (max-width: 1000px) {
+            .grid { grid-template-columns: 1fr; }
+            .sidebar { position: relative !important; top: 0 !important; max-height: none !important; margin-bottom: 30px; }
+        }
+
+        .sidebar { background: var(--card); padding: 25px; border-radius: 16px; border: 1px solid var(--border); height: fit-content; max-height: 85vh; overflow-y: auto; position: sticky; top: 20px; }
+        h2 { font-size: 0.8rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 8px; margin: 25px 0 15px 0; text-transform: uppercase; letter-spacing: 0.5px; }
+        h2:first-child { margin-top: 0; }
+        .in-grp { margin-bottom: 15px; }
+        label { display: block; font-size: 0.7rem; color: var(--subtext); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+        input, select { width: 100%; background: #0f172a; border: 1px solid var(--border); color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; transition: 0.2s; }
+        input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1); }
+
+        .payment-hero { background: linear-gradient(135deg, var(--card) 0%, #1e293b 100%); border: 2px solid var(--primary); border-radius: 20px; padding: 40px; margin-bottom: 30px; text-align: center; position: relative; overflow: hidden; }
+        .payment-hero::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(56, 189, 248, 0.1) 0%, transparent 70%); animation: pulse 4s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 0.8; } }
+        .payment-hero-content { position: relative; z-index: 1; }
+        .payment-label { font-size: 0.9rem; color: var(--subtext); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+        .payment-amount { font-size: 4rem; font-weight: 900; color: var(--primary); margin: 15px 0; line-height: 1; }
+        .payment-subtext { font-size: 1rem; color: var(--subtext); margin-top: 10px; }
+        .payment-breakdown { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-top: 25px; padding-top: 25px; border-top: 1px dashed var(--border); }
+        .breakdown-item { text-align: center; }
+        .breakdown-label { font-size: 0.7rem; color: var(--subtext); text-transform: uppercase; }
+        .breakdown-value { font-size: 1.3rem; font-weight: 800; margin-top: 5px; }
+
+        .verdict-card { background: var(--card); border-radius: 16px; padding: 30px; margin-bottom: 25px; border: 2px solid var(--border); transition: 0.3s; }
+        .verdict-card.success { border-color: var(--success); background: linear-gradient(135deg, var(--card) 0%, rgba(74, 222, 128, 0.1) 100%); }
+        .verdict-card.warning { border-color: var(--warning); background: linear-gradient(135deg, var(--card) 0%, rgba(251, 191, 36, 0.1) 100%); }
+        .verdict-card.danger { border-color: var(--danger); background: linear-gradient(135deg, var(--card) 0%, rgba(248, 113, 113, 0.1) 100%); }
+        .verdict-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        .verdict-icon { font-size: 2.5rem; }
+        .verdict-title { font-size: 1.5rem; font-weight: 800; }
+        .verdict-text { font-size: 1rem; line-height: 1.6; color: var(--text); }
+
+        .viz-card { background: var(--card); padding: 30px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 25px; }
+        .viz-title { font-size: 1.1rem; font-weight: 700; margin: 0 0 20px 0; display: flex; align-items: center; gap: 10px; }
+        .info-icon { display: inline-block; width: 18px; height: 18px; background: var(--primary); color: #000; border-radius: 50%; text-align: center; line-height: 18px; font-size: 0.75rem; font-weight: 900; cursor: help; }
+
+        .stack-bar { height: 80px; width: 100%; border-radius: 12px; overflow: hidden; display: flex; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .stack-segment { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; transition: all 0.3s ease; position: relative; cursor: pointer; }
+        .stack-segment:hover { filter: brightness(1.2); }
+        .bar-labels { display: flex; justify-content: space-between; margin-top: 12px; font-size: 0.8rem; color: var(--subtext); }
+
+        .legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 25px; }
+        .legend-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 10px; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
+        .legend-item:hover { background: rgba(255,255,255,0.08); border-color: var(--primary); }
+        .legend-dot { width: 16px; height: 16px; border-radius: 4px; flex-shrink: 0; }
+        .legend-info { flex: 1; }
+        .legend-label { font-size: 0.75rem; color: var(--subtext); text-transform: uppercase; display: block; }
+        .legend-value { font-size: 1.1rem; font-weight: 800; display: block; margin-top: 2px; }
+
+        .timeline { margin-top: 25px; }
+        .timeline-row { display: flex; align-items: center; gap: 15px; margin: 15px 0; }
+        .timeline-label { min-width: 180px; font-size: 0.8rem; font-weight: 600; color: var(--text); }
+        .timeline-bar { flex: 1; height: 40px; background: var(--border); border-radius: 8px; position: relative; overflow: hidden; }
+        .timeline-fill { height: 100%; background: var(--primary); display: flex; align-items: center; padding: 0 15px; font-size: 0.85rem; font-weight: 700; color: #000; transition: width 0.5s ease; }
+        .timeline-amount { min-width: 100px; text-align: right; font-size: 1rem; font-weight: 800; }
+
+        .health-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .health-box { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: 0.3s; }
+        .health-box:hover { border-color: var(--primary); transform: translateY(-2px); }
+        .health-label { font-size: 0.7rem; color: var(--subtext); text-transform: uppercase; font-weight: 700; }
+        .health-value { font-size: 2rem; font-weight: 900; margin: 10px 0; }
+        .health-desc { font-size: 0.8rem; color: var(--subtext); line-height: 1.5; }
+        .health-status { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; margin-top: 10px; }
+        .health-status.good { background: rgba(74, 222, 128, 0.2); color: var(--success); }
+        .health-status.warning { background: rgba(251, 191, 36, 0.2); color: var(--warning); }
+        .health-status.bad { background: rgba(248, 113, 113, 0.2); color: var(--danger); }
+
+        .btn { padding: 12px 24px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: 0.2s; }
+        .btn-primary { background: var(--primary); color: #000; }
+        .btn-primary:hover { background: #7dd3fc; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(56, 189, 248, 0.4); }
+
+        .scenario-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .scenario-card { background: var(--card); border: 2px solid var(--border); border-radius: 12px; padding: 20px; cursor: pointer; transition: 0.2s; }
+        .scenario-card:hover { border-color: var(--primary); transform: translateY(-4px); box-shadow: 0 8px 16px rgba(0,0,0,0.3); }
+        .scenario-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 15px; }
+        .scenario-stats { display: grid; gap: 10px; }
+        .scenario-stat { display: flex; justify-content: space-between; font-size: 0.85rem; }
+
+        .slider-container { margin: 25px 0; }
+        .slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .slider-label { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+        .slider-value { font-size: 1.1rem; font-weight: 800; color: var(--primary); }
+        input[type="range"] { width: 100%; height: 8px; border-radius: 4px; background: var(--border); outline: none; -webkit-appearance: none; transition: 0.2s; }
+        input[type="range"]:hover { background: #475569; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--primary); cursor: pointer; box-shadow: 0 2px 8px rgba(56, 189, 248, 0.5); transition: 0.2s; }
+        input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+        input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: var(--primary); cursor: pointer; border: none; box-shadow: 0 2px 8px rgba(56, 189, 248, 0.5); }
+        .slider-bounds { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--subtext); margin-top: 5px; }
+
+        .impact-summary { background: rgba(56, 189, 248, 0.1); border: 2px solid var(--primary); border-radius: 12px; padding: 25px; margin-top: 25px; }
+        .impact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; margin-top: 15px; }
+        .impact-item { text-align: center; }
+        .impact-label { font-size: 0.7rem; color: var(--subtext); text-transform: uppercase; }
+        .impact-value { font-size: 1.6rem; font-weight: 900; margin-top: 5px; }
+
+        .sidebar::-webkit-scrollbar { width: 8px; }
+        .sidebar::-webkit-scrollbar-track { background: #0f172a; border-radius: 4px; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        .sidebar::-webkit-scrollbar-thumb:hover { background: var(--subtext); }
+
+        .tooltip { position: relative; display: inline-block; }
+        .tooltiptext { visibility: hidden; width: 220px; background-color: rgba(0,0,0,0.95); color: #fff; text-align: center; border-radius: 6px; padding: 8px; position: absolute; z-index: 1000; bottom: 125%; left: 50%; margin-left: -110px; opacity: 0; transition: opacity 0.3s; font-size: 0.75rem; line-height: 1.4; }
+        .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
+        .tooltiptext::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: rgba(0,0,0,0.95) transparent transparent transparent; }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab('overview')">🏠 Payment Analysis</button>
+        <button class="tab" onclick="switchTab('whatif')">🎯 What-If Calculator</button>
+        <button class="tab" onclick="switchTab('scenarios')">📊 Compare Options</button>
+    </div>
+
+    <div id="overview" class="tab-content active">
+        <div class="grid">
+            <div class="sidebar">
+                <h2>🚗 Vehicle Purchase</h2>
+                <div class="in-grp">
+                    <label>Vehicle Name (Optional)</label>
+                    <input type="text" id="car-name" placeholder="e.g., Honda Accord 2024">
+                </div>
+                <div class="in-grp">
+                    <label>Purchase Price ($)</label>
+                    <input type="number" id="price">
+                </div>
+                <div class="in-grp">
+                    <label>Sales Tax (%)</label>
+                    <input type="number" id="tax" step="0.1">
+                </div>
+                <div class="in-grp">
+                    <label>Down Payment ($)</label>
+                    <input type="number" id="down">
+                </div>
+                <div class="in-grp">
+                    <label>Trade-In Value ($)</label>
+                    <input type="number" id="tradein">
+                </div>
+
+                <h2>💳 Loan Terms</h2>
+                <div class="in-grp">
+                    <label>Interest Rate - APR (%)</label>
+                    <input type="number" id="apr" step="0.1">
+                </div>
+                <div class="in-grp">
+                    <label>Loan Length (Months)</label>
+                    <select id="term">
+                        <option value="24">24 months (2 years)</option>
+                        <option value="36">36 months (3 years)</option>
+                        <option value="48">48 months (4 years)</option>
+                        <option value="60">60 months (5 years)</option>
+                        <option value="72">72 months (6 years)</option>
+                        <option value="84">84 months (7 years)</option>
+                    </select>
+                </div>
+
+                <h2>⛽ Monthly Ownership Costs</h2>
+                <div class="in-grp">
+                    <label>Fuel/Gas ($)</label>
+                    <input type="number" id="gas">
+                </div>
+                <div class="in-grp">
+                    <label>Insurance ($)</label>
+                    <input type="number" id="insurance">
+                </div>
+                <div class="in-grp">
+                    <label>Maintenance/Repairs ($)</label>
+                    <input type="number" id="maint">
+                </div>
+                <div class="in-grp">
+                    <label>Parking/Tolls/Other ($)</label>
+                    <input type="number" id="misc">
+                </div>
+
+                <h2>💰 Your Income & Expenses</h2>
+                <div class="in-grp">
+                    <label>Monthly Take-Home Pay ($)</label>
+                    <input type="number" id="income">
+                </div>
+                <div class="in-grp">
+                    <label>Rent/Mortgage ($)</label>
+                    <input type="number" id="rent">
+                </div>
+                <div class="in-grp">
+                    <label>Other Bills (utilities, phone, etc) ($)</label>
+                    <input type="number" id="bills">
+                </div>
+                <div class="in-grp">
+                    <label>Food & Groceries ($)</label>
+                    <input type="number" id="food">
+                </div>
+                <div class="in-grp">
+                    <label>Savings Goal ($)</label>
+                    <input type="number" id="savings">
+                </div>
+                <div class="in-grp">
+                    <label>Current Emergency Fund ($)</label>
+                    <input type="number" id="emergency">
+                </div>
+
+                <button class="btn btn-primary" style="width:100%; margin-top:20px;" onclick="saveScenario()">
+                    💾 Save This Scenario
+                </button>
+            </div>
+
+            <div class="main-content">
+                <div class="payment-hero">
+                    <div class="payment-hero-content">
+                        <div class="payment-label">Your Total Monthly Car Payment</div>
+                        <div class="payment-amount" id="total-payment">$0</div>
+                        <div class="payment-subtext">Loan payment + all ownership costs</div>
+
+                        <div class="payment-breakdown">
+                            <div class="breakdown-item">
+                                <div class="breakdown-label">Loan Payment</div>
+                                <div class="breakdown-value" id="loan-payment">$0</div>
+                            </div>
+                            <div class="breakdown-item">
+                                <div class="breakdown-label">Fuel</div>
+                                <div class="breakdown-value" id="fuel-cost">$0</div>
+                            </div>
+                            <div class="breakdown-item">
+                                <div class="breakdown-label">Insurance</div>
+                                <div class="breakdown-value" id="insurance-cost">$0</div>
+                            </div>
+                            <div class="breakdown-item">
+                                <div class="breakdown-label">Maintenance</div>
+                                <div class="breakdown-value" id="maint-cost">$0</div>
+                            </div>
+                            <div class="breakdown-item">
+                                <div class="breakdown-label">Other</div>
+                                <div class="breakdown-value" id="other-cost">$0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="verdict" class="verdict-card"></div>
+
+                <div class="viz-card">
+                    <h3 class="viz-title">
+                        💵 Monthly Budget Impact
+                        <span class="tooltip">
+                            <span class="info-icon">?</span>
+                            <span class="tooltiptext">See how the car payment fits into your monthly budget</span>
+                        </span>
+                    </h3>
+
+                    <div class="stack-bar" id="budget-bar"></div>
+                    <div class="bar-labels">
+                        <span>$0</span>
+                        <span id="income-label">Monthly Income: $0</span>
+                    </div>
+
+                    <div class="legend" id="budget-legend"></div>
+                </div>
+
+                <div class="viz-card">
+                    <h3 class="viz-title">
+                        💰 Where Your Money Goes
+                        <span class="tooltip">
+                            <span class="info-icon">?</span>
+                            <span class="tooltiptext">Complete breakdown of every dollar you'll spend on this car</span>
+                        </span>
+                    </h3>
+                    <p style="font-size: 0.9rem; color: var(--subtext); margin-bottom: 25px;">
+                        Here's the full picture of what this car will cost you from purchase to final payment
+                    </p>
+
+                    <div class="timeline">
+                        <div class="timeline-row">
+                            <div class="timeline-label">
+                                💵 Upfront Cash
+                                <div style="font-size: 0.65rem; color: var(--subtext); margin-top: 2px;">Money you pay today</div>
+                            </div>
+                            <div class="timeline-bar">
+                                <div class="timeline-fill" id="down-bar" style="width: 100%; background: #64748b;">
+                                    <span id="down-pct">0%</span>
+                                </div>
+                            </div>
+                            <div class="timeline-amount" id="down-amount">$0</div>
+                        </div>
+                        <div class="timeline-row">
+                            <div class="timeline-label">
+                                🏦 Loan Principal
+                                <div style="font-size: 0.65rem; color: var(--subtext); margin-top: 2px;">The actual borrowed amount</div>
+                            </div>
+                            <div class="timeline-bar">
+                                <div class="timeline-fill" id="principal-bar" style="background: var(--primary);">
+                                    <span id="principal-pct">0%</span>
+                                </div>
+                            </div>
+                            <div class="timeline-amount" id="principal-amount">$0</div>
+                        </div>
+                        <div class="timeline-row">
+                            <div class="timeline-label">
+                                📊 Interest Charges
+                                <div style="font-size: 0.65rem; color: var(--subtext); margin-top: 2px;">Cost of borrowing money</div>
+                            </div>
+                            <div class="timeline-bar">
+                                <div class="timeline-fill" id="interest-bar" style="background: var(--warning);">
+                                    <span id="interest-pct">0%</span>
+                                </div>
+                            </div>
+                            <div class="timeline-amount" id="interest-amount">$0</div>
+                        </div>
+                        <div class="timeline-row">
+                            <div class="timeline-label">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span>🔧 Gas, Insurance & Maintenance</span>
+                                    <div class="tooltip">
+                                        <span class="info-icon" style="font-size: 0.7rem; width: 16px; height: 16px; line-height: 16px;">?</span>
+                                        <span class="tooltiptext" id="ownership-tooltip">Loading...</span>
+                                    </div>
+                                </div>
+                                <div style="font-size: 0.65rem; color: var(--subtext); margin-top: 2px;">All ownership costs over loan term</div>
+                            </div>
+                            <div class="timeline-bar">
+                                <div class="timeline-fill" id="ownership-bar" style="background: #475569;">
+                                    <span id="ownership-pct">0%</span>
+                                </div>
+                            </div>
+                            <div class="timeline-amount" id="ownership-amount">$0</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 30px; padding: 25px; background: linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(56, 189, 248, 0.05) 100%); border-radius: 12px; border: 2px solid var(--primary);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+                            <div>
+                                <div style="font-size: 0.75rem; color: var(--subtext); text-transform: uppercase; margin-bottom: 5px;">TRUE TOTAL COST</div>
+                                <div id="grand-total" style="font-size: 2.8rem; font-weight: 900; color: var(--primary);">$0</div>
+                                <div style="font-size: 0.85rem; color: var(--subtext); margin-top: 5px;">Over <span id="loan-years">5</span> years</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 0.8rem; color: var(--subtext); margin-bottom: 8px;">💡 Quick Comparison</div>
+                                <div style="font-size: 0.85rem; line-height: 1.8;">
+                                    <div>Vehicle Price: <strong id="compare-price" style="color: var(--text);">$0</strong></div>
+                                    <div>You Actually Pay: <strong id="compare-total" style="color: var(--primary);">$0</strong></div>
+                                    <div style="margin-top: 5px; padding-top: 8px; border-top: 1px dashed var(--border);">
+                                        Extra Cost: <strong id="compare-diff" style="color: var(--warning);">$0</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="viz-card" style="border: 2px solid var(--primary);">
+                    <h3 class="viz-title">
+                        💎 Your Wealth After the Loan Term
+                        <span class="tooltip">
+                            <span class="info-icon">?</span>
+                            <span class="tooltiptext">What you'll have accumulated by the time you finish paying off this car</span>
+                        </span>
+                    </h3>
+                    <p style="font-size: 0.9rem; color: var(--subtext); margin-bottom: 25px;">
+                        While making car payments for <span id="wealth-term">60</span> months, here's what you'll build:
+                    </p>
+
+                    <div class="wealth-grid-2col" style="margin-bottom: 25px;">
+                        <div style="background: rgba(74, 222, 128, 0.1); border: 1px solid var(--success); border-radius: 12px; padding: 25px; text-align: center; cursor: pointer;" onclick="toggleBreakdown('savings-breakdown')">
+                            <div style="font-size: 0.75rem; color: var(--subtext); text-transform: uppercase; margin-bottom: 10px;">💰 Savings Goal Accumulated</div>
+                            <div style="font-size: 2.5rem; font-weight: 900; color: var(--success); margin: 15px 0;" id="savings-accumulated">$0</div>
+                            <div style="font-size: 0.85rem; color: var(--subtext);" id="savings-monthly-detail">$0/month × 60 months</div>
+                            <div style="margin-top: 15px; font-size: 0.75rem; color: var(--primary);">👆 Click for breakdown</div>
+
+                            <div id="savings-breakdown" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--border); text-align: left; font-size: 0.85rem;">
+                                <div style="font-weight: 700; margin-bottom: 10px; color: var(--text);">Calculation:</div>
+                                <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                                    <span>Monthly savings goal:</span>
+                                    <strong id="bd-savings-monthly">$0</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                                    <span>× Number of months:</span>
+                                    <strong id="bd-savings-months">60</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin: 10px 0 0 0; padding-top: 10px; border-top: 1px solid var(--border); color: var(--success);">
+                                    <span>Total saved:</span>
+                                    <strong id="bd-savings-total">$0</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="background: rgba(56, 189, 248, 0.1); border: 1px solid var(--primary); border-radius: 12px; padding: 25px; text-align: center; cursor: pointer;" onclick="toggleBreakdown('freecash-breakdown')">
+                            <div style="font-size: 0.75rem; color: var(--subtext); text-transform: uppercase; margin-bottom: 10px;">💵 Free Cash Accumulated</div>
+                            <div style="font-size: 2.5rem; font-weight: 900; color: var(--primary); margin: 15px 0;" id="freecash-accumulated">$0</div>
+                            <div style="font-size: 0.85rem; color: var(--subtext);" id="freecash-monthly-detail">$0/month × 60 months</div>
+                            <div style="margin-top: 15px; font-size: 0.75rem; color: var(--primary);">👆 Click for breakdown</div>
+
+                            <div id="freecash-breakdown" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--border); text-align: left; font-size: 0.85rem;">
+                                <div style="font-weight: 700; margin-bottom: 10px; color: var(--text);">Calculation:</div>
+                                <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                                    <span>Monthly income:</span>
+                                    <strong id="bd-income">$0</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                                    <span>− Rent/Mortgage:</span>
+                                    <strong id="bd-rent">$0</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                                    <span>− Food & Groceries:</span>
+                                    <strong id="bd-food">$0</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                                    <span>− Other Bills:</span>
+                                    <strong id="bd-bills">$0</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                                    <span>− Savings Goal:</span>
+                                    <strong id="bd-savings">$0</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                                    <span>− Total Car Payment:</span>
+                                    <strong id="bd-car">$0</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin: 10px 0 0 0; padding-top: 10px; border-top: 1px solid var(--border);">
+                                    <span>Free cash per month:</span>
+                                    <strong id="bd-freecash-monthly" style="color: var(--primary);">$0</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                                    <span>× Number of months:</span>
+                                    <strong id="bd-freecash-months">60</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin: 10px 0 0 0; padding-top: 10px; border-top: 1px solid var(--border); color: var(--primary);">
+                                    <span>Total accumulated:</span>
+                                    <strong id="bd-freecash-total">$0</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(74, 222, 128, 0.2) 100%); border: 2px solid var(--success); border-radius: 12px; padding: 30px; text-align: center;">
+                        <div style="font-size: 0.85rem; color: var(--subtext); margin-bottom: 10px;">🎯 TOTAL WEALTH ACCUMULATED</div>
+                        <div style="font-size: 3.5rem; font-weight: 900; background: linear-gradient(135deg, var(--primary) 0%, var(--success) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 15px 0;" id="total-wealth">$0</div>
+                        <div style="font-size: 1rem; color: var(--text); margin-top: 15px; line-height: 1.6;">
+                            By the time you finish paying off this car, you'll have saved <strong id="tw-savings">$0</strong> toward your goals<br>
+                            <span style="font-size: 0.9rem; color: var(--subtext);">
+                                <span id="tw-freecash-note"></span>
+                            </span>
+                        </div>
+                        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px dashed rgba(255,255,255,0.3); font-size: 0.8rem; color: var(--subtext);">
+                            💡 This assumes you consistently save your savings goal and free cash remains after all expenses each month
+                        </div>
+                    </div>
+                </div>
+
+                <div class="viz-card" style="border: 2px solid var(--success);">
+                    <h3 class="viz-title">
+                        💰 What If You Saved This Money Instead?
+                        <span class="tooltip">
+                            <span class="info-icon">?</span>
+                            <span class="tooltiptext">If you invested the car payment amount each month at a conservative 5% annual return</span>
+                        </span>
+                    </h3>
+                    <p style="font-size: 0.9rem; color: var(--subtext); margin-bottom: 25px;">
+                        Instead of buying this car, what if you invested the monthly payment amount?
+                    </p>
+
+                    <div class="wealth-grid-2col" style="margin-bottom: 25px;">
+                        <div style="background: rgba(248, 113, 113, 0.1); border: 1px solid var(--danger); border-radius: 12px; padding: 25px; text-align: center;">
+                            <div style="font-size: 0.75rem; color: var(--subtext); text-transform: uppercase; margin-bottom: 10px;">🚗 With The Car</div>
+                            <div style="font-size: 2.5rem; font-weight: 900; color: var(--danger); margin: 15px 0;" id="with-car-value">$0</div>
+                            <div style="font-size: 0.85rem; color: var(--subtext);">Total spent on car payments</div>
+                        </div>
+
+                        <div style="background: rgba(74, 222, 128, 0.1); border: 1px solid var(--success); border-radius: 12px; padding: 25px; text-align: center;">
+                            <div style="font-size: 0.75rem; color: var(--subtext); text-transform: uppercase; margin-bottom: 10px;">💎 If You Saved Instead</div>
+                            <div style="font-size: 2.5rem; font-weight: 900; color: var(--success); margin: 15px 0;" id="if-saved-value">$0</div>
+                            <div style="font-size: 0.85rem; color: var(--subtext);">Investment value at 5% annual return</div>
+                        </div>
+                    </div>
+
+                    <div style="background: linear-gradient(135deg, rgba(74, 222, 128, 0.15) 0%, rgba(74, 222, 128, 0.05) 100%); border: 2px solid var(--success); border-radius: 12px; padding: 25px; text-align: center;">
+                        <div style="font-size: 0.85rem; color: var(--subtext); margin-bottom: 10px;">💡 THE OPPORTUNITY COST</div>
+                        <div style="font-size: 3rem; font-weight: 900; color: var(--success); margin: 10px 0;" id="opportunity-diff">$0</div>
+                        <div style="font-size: 1rem; color: var(--text); margin-top: 10px;">
+                            This is how much wealth you could build by <strong>not</strong> buying this car
+                        </div>
+                        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--border); font-size: 0.85rem; color: var(--subtext); line-height: 1.8;">
+                            <div>📊 Monthly payment going to savings: <strong id="monthly-to-save" style="color: var(--text);">$0</strong></div>
+                            <div>📅 Over <span id="save-term">60</span> months with 5% annual returns</div>
+                            <div style="margin-top: 10px; font-size: 0.8rem; font-style: italic;">
+                                Note: This assumes conservative investment returns and doesn't account for inflation
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="viz-card">
+                    <h3 class="viz-title">
+                        🏥 Financial Health Check
+                        <span class="tooltip">
+                            <span class="info-icon">?</span>
+                            <span class="tooltiptext">Key indicators of whether this purchase is sustainable</span>
+                        </span>
+                    </h3>
+
+                    <div class="health-grid">
+                        <div class="health-box">
+                            <div class="health-label">Monthly Free Cash</div>
+                            <div class="health-value" id="free-cash" style="color: var(--success);">$0</div>
+                            <div class="health-desc">Money left after all expenses including car payment</div>
+                            <span class="health-status good" id="cash-status">Good</span>
+                        </div>
+
+                        <div class="health-box">
+                            <div class="health-label">Car Payment % of Income</div>
+                            <div class="health-value" id="car-pct" style="color: var(--primary);">0%</div>
+                            <div class="health-desc">Financial experts recommend keeping this under 15-20%</div>
+                            <span class="health-status good" id="pct-status">Good</span>
+                        </div>
+
+                        <div class="health-box">
+                            <div class="health-label">Emergency Fund Coverage</div>
+                            <div class="health-value" id="ef-months" style="color: var(--warning);">0</div>
+                            <div class="health-desc">Months of expenses covered. Target is 3-6 months minimum</div>
+                            <span class="health-status good" id="ef-status">Good</span>
+                        </div>
+
+                        <div class="health-box">
+                            <div class="health-label">Interest Rate Quality</div>
+                            <div class="health-value" id="rate-quality" style="color: var(--success);">Good</div>
+                            <div class="health-desc" id="rate-desc">Current rates vary by credit score</div>
+                            <span class="health-status good" id="rate-status">Good</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="whatif" class="tab-content">
+        <div class="viz-card">
+            <h3 class="viz-title">🎯 What-If Calculator</h3>
+            <p style="font-size: 0.95rem; color: var(--subtext); margin-bottom: 30px;">
+                Adjust these sliders to see how different choices affect your monthly payment and affordability
+            </p>
+
+            <div class="slider-container">
+                <div class="slider-header">
+                    <span class="slider-label">💰 Down Payment</span>
+                    <span class="slider-value" id="wi-down-val">$5,000</span>
+                </div>
+                <input type="range" id="wi-down" min="0" max="50000" step="500" value="5000">
+                <div class="slider-bounds"><span>$0</span><span>$50,000</span></div>
+            </div>
+
+            <div class="slider-container">
+                <div class="slider-header">
+                    <span class="slider-label">📊 Interest Rate (APR)</span>
+                    <span class="slider-value" id="wi-apr-val">8.0%</span>
+                </div>
+                <input type="range" id="wi-apr" min="0" max="20" step="0.1" value="8">
+                <div class="slider-bounds"><span>0%</span><span>20%</span></div>
+            </div>
+
+            <div class="slider-container">
+                <div class="slider-header">
+                    <span class="slider-label">📅 Loan Term</span>
+                    <span class="slider-value" id="wi-term-val">60 months</span>
+                </div>
+                <input type="range" id="wi-term" min="24" max="84" step="12" value="60">
+                <div class="slider-bounds"><span>24 months</span><span>84 months</span></div>
+            </div>
+
+            <div class="slider-container">
+                <div class="slider-header">
+                    <span class="slider-label">🛡️ Monthly Insurance</span>
+                    <span class="slider-value" id="wi-ins-val">$150</span>
+                </div>
+                <input type="range" id="wi-ins" min="50" max="500" step="10" value="150">
+                <div class="slider-bounds"><span>$50</span><span>$500</span></div>
+            </div>
+
+            <div class="impact-summary">
+                <h4 style="margin: 0 0 15px 0; font-size: 1.1rem;">Real-Time Impact</h4>
+                <div class="impact-grid">
+                    <div class="impact-item">
+                        <div class="impact-label">Monthly Payment</div>
+                        <div class="impact-value" id="wi-payment" style="color: var(--primary);">$0</div>
+                    </div>
+                    <div class="impact-item">
+                        <div class="impact-label">Free Cash Flow</div>
+                        <div class="impact-value" id="wi-cash">$0</div>
+                    </div>
+                    <div class="impact-item">
+                        <div class="impact-label">Total Interest</div>
+                        <div class="impact-value" id="wi-interest" style="color: var(--warning);">$0</div>
+                    </div>
+                    <div class="impact-item">
+                        <div class="impact-label">% of Income</div>
+                        <div class="impact-value" id="wi-pct" style="color: var(--text);">0%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="scenarios" class="tab-content">
+        <div class="viz-card">
+            <h3 class="viz-title">📊 Compare Your Options</h3>
+            <p style="font-size: 0.95rem; color: var(--subtext); margin-bottom: 25px;">
+                Save different vehicle configurations and compare them side-by-side
+            </p>
+
+            <div id="scenario-list" class="scenario-grid">
+                <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; color: var(--subtext);">
+                    <div style="font-size: 3rem; margin-bottom: 15px;">📋</div>
+                    <div style="font-size: 1.1rem; margin-bottom: 10px;">No scenarios saved yet</div>
+                    <div style="font-size: 0.9rem;">Configure your purchase details and click "Save This Scenario" to compare options</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const fmt = (n) => new Intl.NumberFormat('en-US', {style:'currency', currency:'USD', maximumFractionDigits:0}).format(n);
+
+    let scenarios = [];
+    let currentCalc = {};
+
+    function val(id) {
+        return parseFloat(document.getElementById(id).value) || 0;
+    }
+
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        event.target.classList.add('active');
+        document.getElementById(tabName).classList.add('active');
+
+        if (tabName === 'scenarios') renderScenarios();
+    }
+
+    function calculate() {
+        const price = val('price');
+        const tax = val('tax');
+        const down = val('down');
+        const tradeIn = val('tradein');
+        const apr = val('apr');
+        const term = val('term');
+        const gas = val('gas');
+        const insurance = val('insurance');
+        const maint = val('maint');
+        const misc = val('misc');
+        const income = val('income');
+        const rent = val('rent');
+        const bills = val('bills');
+        const food = val('food');
+        const savings = val('savings');
+        const emergency = val('emergency');
+
+        const effectiveDown = down + tradeIn;
+        const purchasePrice = price * (1 + tax/100);
+        const principal = purchasePrice - effectiveDown;
+        const monthlyRate = (apr/100) / 12;
+        const loanPayment = monthlyRate === 0 ? principal/term :
+            principal * (monthlyRate * Math.pow(1 + monthlyRate, term)) / (Math.pow(1 + monthlyRate, term) - 1);
+
+        const totalCarPayment = loanPayment + gas + insurance + maint + misc;
+        const totalExpenses = rent + bills + food + savings + totalCarPayment;
+        const freeCash = income - totalExpenses;
+        const carPct = (totalCarPayment / income) * 100;
+
+        const totalInterest = (loanPayment * term) - principal;
+        const totalOwnership = (gas + insurance + maint + misc) * term;
+        const grandTotal = effectiveDown + (loanPayment * term) + totalOwnership;
+
+        const monthlyExpenses = rent + bills + food + totalCarPayment;
+        const efMonths = emergency / monthlyExpenses;
+
+        currentCalc = {
+            loanPayment, gas, insurance, maint, misc, totalCarPayment,
+            freeCash, carPct, effectiveDown, principal, totalInterest,
+            totalOwnership, grandTotal, term, income, efMonths, apr,
+            price, monthlyExpenses
+        };
+
+        updatePaymentHero();
+        updateVerdict();
+        updateBudgetBar();
+        updateCostBreakdown();
+        updateHealthChecks();
+        updateWealthAccumulation();
+        updateSavingsComparison();
+        syncWhatIf();
+    }
+
+    function toggleBreakdown(id) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.style.display = el.style.display === 'block' ? 'none' : 'block';
+        }
+    }
+
+    function updateWealthAccumulation() {
+        const c = currentCalc;
+        const savingsGoal = val('savings');
+        const freeCash = Math.max(0, c.freeCash);
+        const term = c.term;
+
+        const savingsAccumulated = savingsGoal * term;
+        const freeCashAccumulated = freeCash * term;
+        const totalWealth = savingsAccumulated + freeCashAccumulated;
+
+        document.getElementById('wealth-term').textContent = term;
+        document.getElementById('savings-accumulated').textContent = fmt(savingsAccumulated);
+        document.getElementById('savings-monthly-detail').textContent = `${fmt(savingsGoal)}/month × ${term} months`;
+        document.getElementById('freecash-accumulated').textContent = fmt(freeCashAccumulated);
+        document.getElementById('freecash-monthly-detail').textContent = `${fmt(freeCash)}/month × ${term} months`;
+        document.getElementById('total-wealth').textContent = fmt(totalWealth);
+        document.getElementById('tw-savings').textContent = fmt(savingsAccumulated);
+
+        const freeCashNote = document.getElementById('tw-freecash-note');
+        if (c.freeCash > 0) {
+            freeCashNote.textContent = `plus ${fmt(freeCashAccumulated)} in additional free cash available for other goals`;
+            freeCashNote.style.color = 'var(--success)';
+        } else if (c.freeCash === 0) {
+            freeCashNote.textContent = `(No additional free cash - you're breaking even)`;
+            freeCashNote.style.color = 'var(--warning)';
+        } else {
+            freeCashNote.textContent = `⚠️ Warning: You have negative cash flow and won't be able to save`;
+            freeCashNote.style.color = 'var(--danger)';
+        }
+
+        document.getElementById('bd-savings-monthly').textContent = fmt(savingsGoal);
+        document.getElementById('bd-savings-months').textContent = term;
+        document.getElementById('bd-savings-total').textContent = fmt(savingsAccumulated);
+
+        document.getElementById('bd-income').textContent = fmt(c.income);
+        document.getElementById('bd-rent').textContent = fmt(val('rent'));
+        document.getElementById('bd-food').textContent = fmt(val('food'));
+        document.getElementById('bd-bills').textContent = fmt(val('bills'));
+        document.getElementById('bd-savings').textContent = fmt(savingsGoal);
+        document.getElementById('bd-car').textContent = fmt(c.totalCarPayment);
+        document.getElementById('bd-freecash-monthly').textContent = fmt(freeCash);
+        document.getElementById('bd-freecash-months').textContent = term;
+        document.getElementById('bd-freecash-total').textContent = fmt(freeCashAccumulated);
+    }
+
+    function updatePaymentHero() {
+        const c = currentCalc;
+        document.getElementById('total-payment').textContent = fmt(c.totalCarPayment);
+        document.getElementById('loan-payment').textContent = fmt(c.loanPayment);
+        document.getElementById('fuel-cost').textContent = fmt(c.gas);
+        document.getElementById('insurance-cost').textContent = fmt(c.insurance);
+        document.getElementById('maint-cost').textContent = fmt(c.maint);
+        document.getElementById('other-cost').textContent = fmt(c.misc);
+    }
+
+    function updateVerdict() {
+        const c = currentCalc;
+        const verdictEl = document.getElementById('verdict');
+
+        let icon, title, text, className;
+
+        if (c.freeCash < 0) {
+            icon = '🚨';
+            title = 'Not Affordable - Negative Cash Flow';
+            text = `This car payment would put you <strong>${fmt(Math.abs(c.freeCash))}</strong> in the red every month. You cannot afford this vehicle with your current income and expenses. You would need to either increase income, reduce expenses, or choose a less expensive vehicle.`;
+            className = 'danger';
+        } else if (c.freeCash < 200) {
+            icon = '⚠️';
+            title = 'High Risk - Very Tight Budget';
+            text = `You'd only have <strong>${fmt(c.freeCash)}</strong> left each month after all expenses. This leaves almost no room for unexpected costs, entertainment, or additional savings. One emergency could put you in debt.`;
+            className = 'danger';
+        } else if (c.carPct > 30) {
+            icon = '⚡';
+            title = 'Risky - High Payment Burden';
+            text = `At <strong>${c.carPct.toFixed(1)}%</strong> of your income, this car payment is significantly above the recommended 15-20% maximum. While technically possible, this will severely limit your financial flexibility and ability to save for other goals.`;
+            className = 'warning';
+        } else if (c.carPct > 20 || c.freeCash < 500) {
+            icon = '💡';
+            title = 'Manageable - But Tight';
+            text = `This purchase is on the edge of affordability. You'll have <strong>${fmt(c.freeCash)}</strong> left monthly, and the car costs <strong>${c.carPct.toFixed(1)}%</strong> of your income. It's doable, but leaves limited room for lifestyle expenses or building wealth. Consider a slightly cheaper option.`;
+            className = 'warning';
+        } else if (c.carPct > 15) {
+            icon = '✅';
+            title = 'Affordable - Within Healthy Range';
+            text = `This purchase appears financially sound. The car payment is <strong>${c.carPct.toFixed(1)}%</strong> of your income, leaving you <strong>${fmt(c.freeCash)}</strong> monthly for discretionary spending. You're within the recommended guidelines and should be comfortable making these payments.`;
+            className = 'success';
+        } else {
+            icon = '🌟';
+            title = 'Excellent - Very Comfortable';
+            text = `This is a very affordable purchase for your income level. At only <strong>${c.carPct.toFixed(1)}%</strong> of your income with <strong>${fmt(c.freeCash)}</strong> left monthly, you'll have plenty of financial breathing room. This leaves you well-positioned to save, invest, and handle unexpected expenses.`;
+            className = 'success';
+        }
+
+        verdictEl.className = `verdict-card ${className}`;
+        verdictEl.innerHTML = `
+            <div class="verdict-header">
+                <div class="verdict-icon">${icon}</div>
+                <div class="verdict-title">${title}</div>
+            </div>
+            <div class="verdict-text">${text}</div>
+        `;
+    }
+
+    function updateBudgetBar() {
+        const c = currentCalc;
+        const income = c.income;
+
+        const categories = [
+            { label: 'Rent/Mortgage', value: val('rent'), color: '#64748b' },
+            { label: 'Food & Groceries', value: val('food'), color: '#8b5cf6' },
+            { label: 'Other Bills', value: val('bills'), color: '#475569' },
+            { label: 'Savings Goal', value: val('savings'), color: '#4ade80' },
+            { label: 'Total Car Payment', value: c.totalCarPayment, color: '#38bdf8' },
+            { label: 'Free Cash', value: Math.max(0, c.freeCash), color: c.freeCash > 0 ? '#ffffff' : '#f87171' }
+        ];
+
+        const sorted = [...categories].sort((a, b) => b.value - a.value);
+
+        const barEl = document.getElementById('budget-bar');
+        barEl.innerHTML = sorted.map(cat => {
+            const pct = (cat.value / income) * 100;
+            return `<div class="stack-segment" style="width: ${pct}%; background: ${cat.color}; color: ${cat.color === '#ffffff' ? '#000' : '#fff'};" title="${cat.label}: ${fmt(cat.value)} (${pct.toFixed(1)}%)"></div>`;
+        }).join('');
+
+        const legendEl = document.getElementById('budget-legend');
+        legendEl.innerHTML = categories.map(cat => {
+            const pct = (cat.value / income) * 100;
+            return `
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: ${cat.color};"></div>
+                    <div class="legend-info">
+                        <span class="legend-label">${cat.label}</span>
+                        <span class="legend-value">${fmt(cat.value)}<span style="font-size: 0.8rem; color: var(--subtext); margin-left: 5px;">(${pct.toFixed(1)}%)</span></span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        document.getElementById('income-label').textContent = `Monthly Income: ${fmt(income)}`;
+    }
+
+    function updateCostBreakdown() {
+        const c = currentCalc;
+        const total = c.grandTotal;
+
+        const gasTotal = val('gas') * c.term;
+        const insTotal = val('insurance') * c.term;
+        const maintTotal = val('maint') * c.term;
+        const miscTotal = val('misc') * c.term;
+
+        const tooltipEl = document.getElementById('ownership-tooltip');
+        if (tooltipEl) {
+            tooltipEl.innerHTML = `
+                This adds up over ${c.term} months:<br>
+                • Gas: ${fmt(val('gas'))}/mo × ${c.term} = ${fmt(gasTotal)}<br>
+                • Insurance: ${fmt(val('insurance'))}/mo × ${c.term} = ${fmt(insTotal)}<br>
+                • Maintenance: ${fmt(val('maint'))}/mo × ${c.term} = ${fmt(maintTotal)}<br>
+                • Other: ${fmt(val('misc'))}/mo × ${c.term} = ${fmt(miscTotal)}
+            `;
+        }
+
+        const items = [
+            { id: 'down', value: c.effectiveDown },
+            { id: 'principal', value: c.principal },
+            { id: 'interest', value: c.totalInterest },
+            { id: 'ownership', value: c.totalOwnership }
+        ];
+
+        items.forEach(item => {
+            const pct = (item.value / total) * 100;
+            document.getElementById(`${item.id}-bar`).style.width = pct + '%';
+            document.getElementById(`${item.id}-pct`).textContent = pct.toFixed(0) + '%';
+            document.getElementById(`${item.id}-amount`).textContent = fmt(item.value);
+        });
+
+        document.getElementById('grand-total').textContent = fmt(total);
+        document.getElementById('loan-years').textContent = (c.term / 12).toFixed(1);
+
+        document.getElementById('compare-price').textContent = fmt(c.price);
+        document.getElementById('compare-total').textContent = fmt(total);
+        document.getElementById('compare-diff').textContent = fmt(total - c.price);
+    }
+
+    function updateSavingsComparison() {
+        const c = currentCalc;
+        const totalCarSpent = c.totalCarPayment * c.term;
+        const monthlyRate = 0.05 / 12;
+        const n = c.term;
+        const monthlyPayment = c.totalCarPayment;
+        const futureValue = monthlyPayment * ((Math.pow(1 + monthlyRate, n) - 1) / monthlyRate);
+        const opportunityCost = futureValue - totalCarSpent;
+
+        document.getElementById('with-car-value').textContent = fmt(totalCarSpent);
+        document.getElementById('if-saved-value').textContent = fmt(futureValue);
+        document.getElementById('opportunity-diff').textContent = fmt(opportunityCost);
+        document.getElementById('monthly-to-save').textContent = fmt(monthlyPayment);
+        document.getElementById('save-term').textContent = c.term;
+    }
+
+    function updateHealthChecks() {
+        const c = currentCalc;
+
+        const freeCashEl = document.getElementById('free-cash');
+        const cashStatusEl = document.getElementById('cash-status');
+        freeCashEl.textContent = fmt(c.freeCash);
+
+        if (c.freeCash < 0) {
+            freeCashEl.style.color = 'var(--danger)';
+            cashStatusEl.textContent = 'Critical';
+            cashStatusEl.className = 'health-status bad';
+        } else if (c.freeCash < 300) {
+            freeCashEl.style.color = 'var(--warning)';
+            cashStatusEl.textContent = 'Tight';
+            cashStatusEl.className = 'health-status warning';
+        } else if (c.freeCash < 700) {
+            freeCashEl.style.color = 'var(--primary)';
+            cashStatusEl.textContent = 'Okay';
+            cashStatusEl.className = 'health-status warning';
+        } else {
+            freeCashEl.style.color = 'var(--success)';
+            cashStatusEl.textContent = 'Healthy';
+            cashStatusEl.className = 'health-status good';
+        }
+
+        const carPctEl = document.getElementById('car-pct');
+        const pctStatusEl = document.getElementById('pct-status');
+        carPctEl.textContent = c.carPct.toFixed(1) + '%';
+
+        if (c.carPct > 30) {
+            carPctEl.style.color = 'var(--danger)';
+            pctStatusEl.textContent = 'Too High';
+            pctStatusEl.className = 'health-status bad';
+        } else if (c.carPct > 20) {
+            carPctEl.style.color = 'var(--warning)';
+            pctStatusEl.textContent = 'High';
+            pctStatusEl.className = 'health-status warning';
+        } else if (c.carPct > 15) {
+            carPctEl.style.color = 'var(--primary)';
+            pctStatusEl.textContent = 'Good';
+            pctStatusEl.className = 'health-status good';
+        } else {
+            carPctEl.style.color = 'var(--success)';
+            pctStatusEl.textContent = 'Excellent';
+            pctStatusEl.className = 'health-status good';
+        }
+
+        const efMonthsEl = document.getElementById('ef-months');
+        const efStatusEl = document.getElementById('ef-status');
+        efMonthsEl.textContent = c.efMonths.toFixed(1) + ' mo';
+
+        if (c.efMonths < 1) {
+            efMonthsEl.style.color = 'var(--danger)';
+            efStatusEl.textContent = 'Critical';
+            efStatusEl.className = 'health-status bad';
+        } else if (c.efMonths < 3) {
+            efMonthsEl.style.color = 'var(--warning)';
+            efStatusEl.textContent = 'Low';
+            efStatusEl.className = 'health-status warning';
+        } else if (c.efMonths < 6) {
+            efMonthsEl.style.color = 'var(--primary)';
+            efStatusEl.textContent = 'Adequate';
+            efStatusEl.className = 'health-status good';
+        } else {
+            efMonthsEl.style.color = 'var(--success)';
+            efStatusEl.textContent = 'Strong';
+            efStatusEl.className = 'health-status good';
+        }
+
+        const rateQualityEl = document.getElementById('rate-quality');
+        const rateStatusEl = document.getElementById('rate-status');
+        const rateDescEl = document.getElementById('rate-desc');
+
+        if (c.apr < 4) {
+            rateQualityEl.textContent = 'Excellent';
+            rateQualityEl.style.color = 'var(--success)';
+            rateStatusEl.textContent = 'Excellent';
+            rateStatusEl.className = 'health-status good';
+            rateDescEl.textContent = 'Outstanding rate - well below average';
+        } else if (c.apr < 7) {
+            rateQualityEl.textContent = 'Good';
+            rateQualityEl.style.color = 'var(--success)';
+            rateStatusEl.textContent = 'Good';
+            rateStatusEl.className = 'health-status good';
+            rateDescEl.textContent = 'Solid rate for good credit';
+        } else if (c.apr < 10) {
+            rateQualityEl.textContent = 'Fair';
+            rateQualityEl.style.color = 'var(--warning)';
+            rateStatusEl.textContent = 'Fair';
+            rateStatusEl.className = 'health-status warning';
+            rateDescEl.textContent = 'Average rate - shop around for better';
+        } else {
+            rateQualityEl.textContent = 'Poor';
+            rateQualityEl.style.color = 'var(--danger)';
+            rateStatusEl.textContent = 'High';
+            rateStatusEl.className = 'health-status bad';
+            rateDescEl.textContent = 'High rate - work on credit or find better loan';
+        }
+    }
+
+    function syncWhatIf() {
+        const wiDown = document.getElementById('wi-down');
+        const wiApr = document.getElementById('wi-apr');
+        const wiTerm = document.getElementById('wi-term');
+        const wiIns = document.getElementById('wi-ins');
+
+        if (wiDown) wiDown.value = val('down');
+        if (wiApr) wiApr.value = val('apr');
+        if (wiTerm) wiTerm.value = val('term');
+        if (wiIns) wiIns.value = val('insurance');
+
+        if (wiDown && wiApr && wiTerm && wiIns) {
+            updateWhatIfDisplay();
+            calculateWhatIf();
+        }
+    }
+
+    function updateWhatIfDisplay() {
+        document.getElementById('wi-down-val').textContent = fmt(parseFloat(document.getElementById('wi-down').value));
+        document.getElementById('wi-apr-val').textContent = parseFloat(document.getElementById('wi-apr').value).toFixed(1) + '%';
+        document.getElementById('wi-term-val').textContent = document.getElementById('wi-term').value + ' months';
+        document.getElementById('wi-ins-val').textContent = fmt(parseFloat(document.getElementById('wi-ins').value));
+    }
+
+    function calculateWhatIf() {
+        const price = val('price');
+        const tax = val('tax');
+        const down = parseFloat(document.getElementById('wi-down').value);
+        const tradeIn = val('tradein');
+        const apr = parseFloat(document.getElementById('wi-apr').value);
+        const term = parseFloat(document.getElementById('wi-term').value);
+        const insurance = parseFloat(document.getElementById('wi-ins').value);
+        const gas = val('gas');
+        const maint = val('maint');
+        const misc = val('misc');
+        const income = val('income');
+        const rent = val('rent');
+        const bills = val('bills');
+        const food = val('food');
+        const savings = val('savings');
+
+        const effectiveDown = down + tradeIn;
+        const principal = (price * (1 + tax/100)) - effectiveDown;
+        const monthlyRate = (apr/100) / 12;
+        const loanPayment = monthlyRate === 0 ? principal/term :
+            principal * (monthlyRate * Math.pow(1 + monthlyRate, term)) / (Math.pow(1 + monthlyRate, term) - 1);
+
+        const totalCarPayment = loanPayment + gas + insurance + maint + misc;
+        const totalExpenses = rent + bills + food + savings + totalCarPayment;
+        const freeCash = income - totalExpenses;
+        const carPct = (totalCarPayment / income) * 100;
+        const totalInterest = (loanPayment * term) - principal;
+
+        document.getElementById('wi-payment').textContent = fmt(totalCarPayment);
+        document.getElementById('wi-cash').textContent = fmt(freeCash);
+        document.getElementById('wi-cash').style.color = freeCash < 0 ? 'var(--danger)' : freeCash < 300 ? 'var(--warning)' : 'var(--success)';
+        document.getElementById('wi-interest').textContent = fmt(totalInterest);
+        document.getElementById('wi-pct').textContent = carPct.toFixed(1) + '%';
+        document.getElementById('wi-pct').style.color = carPct > 25 ? 'var(--danger)' : carPct > 20 ? 'var(--warning)' : 'var(--success)';
+    }
+
+    function saveScenario() {
+        const name = document.getElementById('car-name').value || `Scenario ${scenarios.length + 1}`;
+        const c = currentCalc;
+
+        scenarios.push({
+            name,
+            price: val('price'),
+            down: val('down') + val('tradein'),
+            apr: val('apr'),
+            term: val('term'),
+            payment: c.totalCarPayment,
+            freeCash: c.freeCash,
+            carPct: c.carPct,
+            totalCost: c.grandTotal,
+            totalInterest: c.totalInterest
+        });
+
+        alert(`✅ Saved "${name}"!`);
+    }
+
+    function renderScenarios() {
+        const container = document.getElementById('scenario-list');
+
+        if (scenarios.length === 0) {
+            container.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; color: var(--subtext);">
+                    <div style="font-size: 3rem; margin-bottom: 15px;">📋</div>
+                    <div style="font-size: 1.1rem; margin-bottom: 10px;">No scenarios saved yet</div>
+                    <div style="font-size: 0.9rem;">Configure your purchase details and click "Save This Scenario" to compare options</div>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = scenarios.map((s, i) => {
+            const statusClass = s.freeCash < 0 ? 'bad' : s.freeCash < 300 ? 'warning' : 'good';
+            const statusText = s.freeCash < 0 ? 'Not Affordable' : s.freeCash < 300 ? 'Tight' : s.carPct > 25 ? 'High Risk' : s.carPct > 20 ? 'Moderate' : 'Affordable';
+
+            return `
+                <div class="scenario-card">
+                    <div class="scenario-name">${s.name}</div>
+                    <span class="health-status ${statusClass}" style="display: inline-block; margin-bottom: 15px;">${statusText}</span>
+                    <div class="scenario-stats">
+                        <div class="scenario-stat">
+                            <span style="color: var(--subtext);">Monthly Payment:</span>
+                            <strong>${fmt(s.payment)}</strong>
+                        </div>
+                        <div class="scenario-stat">
+                            <span style="color: var(--subtext);">Free Cash:</span>
+                            <strong style="color: ${s.freeCash < 0 ? 'var(--danger)' : 'var(--success)'};">${fmt(s.freeCash)}</strong>
+                        </div>
+                        <div class="scenario-stat">
+                            <span style="color: var(--subtext);">% of Income:</span>
+                            <strong>${s.carPct.toFixed(1)}%</strong>
+                        </div>
+                        <div class="scenario-stat">
+                            <span style="color: var(--subtext);">Total Cost:</span>
+                            <strong>${fmt(s.totalCost)}</strong>
+                        </div>
+                        <div class="scenario-stat">
+                            <span style="color: var(--subtext);">Interest Paid:</span>
+                            <strong style="color: var(--warning);">${fmt(s.totalInterest)}</strong>
+                        </div>
+                        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--subtext);">
+                            ${fmt(s.price)} • ${s.apr}% APR • ${s.term} months
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Setup event listeners
+    document.querySelectorAll('input, select').forEach(el => {
+        if (el) el.addEventListener('input', calculate);
+    });
+
+    ['wi-down', 'wi-apr', 'wi-term', 'wi-ins'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', () => {
+                updateWhatIfDisplay();
+                calculateWhatIf();
+            });
+        }
+    });
+
+    // Initial calculation
+    calculate();
+</script>
+
+</body>
+</html>
