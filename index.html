@@ -13,7 +13,7 @@
         * { box-sizing: border-box; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; overflow-x: hidden; }
         .wrapper { max-width: 1400px; margin: 0 auto; }
-
+        
         @media (max-width: 768px) {
             body { padding: 10px; }
             .payment-amount { font-size: 2.5rem !important; }
@@ -27,9 +27,9 @@
             .timeline-amount { min-width: 80px !important; font-size: 0.9rem !important; }
             .wealth-grid-2col { grid-template-columns: 1fr !important; }
         }
-
+        
         .wealth-grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
-
+        
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid var(--border); flex-wrap: wrap; }
         .tab { padding: 12px 24px; background: transparent; border: none; color: var(--subtext); cursor: pointer; font-size: 0.9rem; font-weight: 600; border-bottom: 3px solid transparent; transition: 0.2s; }
         .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
@@ -37,10 +37,11 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
 
         .grid { display: grid; grid-template-columns: 380px 1fr; gap: 30px; }
-        @media (max-width: 1000px) {
-            .grid { grid-template-columns: 1fr; }
+        @media (max-width: 1000px) { 
+            .grid { grid-template-columns: 1fr; } 
             .sidebar { position: relative !important; top: 0 !important; max-height: none !important; margin-bottom: 30px; }
         }
 
@@ -51,7 +52,7 @@
         label { display: block; font-size: 0.7rem; color: var(--subtext); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
         input, select { width: 100%; background: #0f172a; border: 1px solid var(--border); color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; transition: 0.2s; }
         input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1); }
-
+        
         .payment-hero { background: linear-gradient(135deg, var(--card) 0%, #1e293b 100%); border: 2px solid var(--primary); border-radius: 20px; padding: 40px; margin-bottom: 30px; text-align: center; position: relative; overflow: hidden; }
         .payment-hero::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(56, 189, 248, 0.1) 0%, transparent 70%); animation: pulse 4s ease-in-out infinite; }
         @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 0.8; } }
@@ -166,29 +167,30 @@
                 </div>
                 <div class="in-grp">
                     <label>Purchase Price ($)</label>
-                    <input type="number" id="price">
+                    <input type="number" id="price" value="" placeholder="25000">
                 </div>
                 <div class="in-grp">
                     <label>Sales Tax (%)</label>
-                    <input type="number" id="tax" step="0.1">
+                    <input type="number" id="tax" value="" placeholder="13" step="0.1">
                 </div>
                 <div class="in-grp">
                     <label>Down Payment ($)</label>
-                    <input type="number" id="down">
+                    <input type="number" id="down" value="" placeholder="5000">
                 </div>
                 <div class="in-grp">
                     <label>Trade-In Value ($)</label>
-                    <input type="number" id="tradein">
+                    <input type="number" id="tradein" value="" placeholder="0">
                 </div>
 
                 <h2>💳 Loan Terms</h2>
                 <div class="in-grp">
                     <label>Interest Rate - APR (%)</label>
-                    <input type="number" id="apr" step="0.1">
+                    <input type="number" id="apr" value="" placeholder="8" step="0.1">
                 </div>
                 <div class="in-grp">
                     <label>Loan Length (Months)</label>
                     <select id="term">
+                        <option value="">Select term...</option>
                         <option value="24">24 months (2 years)</option>
                         <option value="36">36 months (3 years)</option>
                         <option value="48">48 months (4 years)</option>
@@ -201,49 +203,53 @@
                 <h2>⛽ Monthly Ownership Costs</h2>
                 <div class="in-grp">
                     <label>Fuel/Gas ($)</label>
-                    <input type="number" id="gas">
+                    <input type="number" id="gas" value="" placeholder="200">
                 </div>
                 <div class="in-grp">
                     <label>Insurance ($)</label>
-                    <input type="number" id="insurance">
+                    <input type="number" id="insurance" value="" placeholder="150">
                 </div>
                 <div class="in-grp">
                     <label>Maintenance/Repairs ($)</label>
-                    <input type="number" id="maint">
+                    <input type="number" id="maint" value="" placeholder="100">
                 </div>
                 <div class="in-grp">
                     <label>Parking/Tolls/Other ($)</label>
-                    <input type="number" id="misc">
+                    <input type="number" id="misc" value="" placeholder="50">
                 </div>
 
                 <h2>💰 Your Income & Expenses</h2>
                 <div class="in-grp">
                     <label>Monthly Take-Home Pay ($)</label>
-                    <input type="number" id="income">
+                    <input type="number" id="income" value="" placeholder="4000">
                 </div>
                 <div class="in-grp">
                     <label>Rent/Mortgage ($)</label>
-                    <input type="number" id="rent">
+                    <input type="number" id="rent" value="" placeholder="1200">
                 </div>
                 <div class="in-grp">
                     <label>Other Bills (utilities, phone, etc) ($)</label>
-                    <input type="number" id="bills">
+                    <input type="number" id="bills" value="" placeholder="400">
                 </div>
                 <div class="in-grp">
                     <label>Food & Groceries ($)</label>
-                    <input type="number" id="food">
+                    <input type="number" id="food" value="" placeholder="500">
                 </div>
                 <div class="in-grp">
                     <label>Savings Goal ($)</label>
-                    <input type="number" id="savings">
+                    <input type="number" id="savings" value="" placeholder="500">
                 </div>
                 <div class="in-grp">
                     <label>Current Emergency Fund ($)</label>
-                    <input type="number" id="emergency">
+                    <input type="number" id="emergency" value="" placeholder="3000">
                 </div>
 
                 <button class="btn btn-primary" style="width:100%; margin-top:20px;" onclick="saveScenario()">
                     💾 Save This Scenario
+                </button>
+                
+                <button class="btn btn-secondary" style="width:100%; margin-top:10px;" onclick="shareResults()">
+                    🔗 Share My Results
                 </button>
             </div>
 
@@ -253,7 +259,7 @@
                         <div class="payment-label">Your Total Monthly Car Payment</div>
                         <div class="payment-amount" id="total-payment">$0</div>
                         <div class="payment-subtext">Loan payment + all ownership costs</div>
-
+                        
                         <div class="payment-breakdown">
                             <div class="breakdown-item">
                                 <div class="breakdown-label">Loan Payment</div>
@@ -289,7 +295,7 @@
                             <span class="tooltiptext">See how the car payment fits into your monthly budget</span>
                         </span>
                     </h3>
-
+                    
                     <div class="stack-bar" id="budget-bar"></div>
                     <div class="bar-labels">
                         <span>$0</span>
@@ -407,7 +413,7 @@
                             <div style="font-size: 2.5rem; font-weight: 900; color: var(--success); margin: 15px 0;" id="savings-accumulated">$0</div>
                             <div style="font-size: 0.85rem; color: var(--subtext);" id="savings-monthly-detail">$0/month × 60 months</div>
                             <div style="margin-top: 15px; font-size: 0.75rem; color: var(--primary);">👆 Click for breakdown</div>
-
+                            
                             <div id="savings-breakdown" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--border); text-align: left; font-size: 0.85rem;">
                                 <div style="font-weight: 700; margin-bottom: 10px; color: var(--text);">Calculation:</div>
                                 <div style="display: flex; justify-content: space-between; margin: 5px 0;">
@@ -430,7 +436,7 @@
                             <div style="font-size: 2.5rem; font-weight: 900; color: var(--primary); margin: 15px 0;" id="freecash-accumulated">$0</div>
                             <div style="font-size: 0.85rem; color: var(--subtext);" id="freecash-monthly-detail">$0/month × 60 months</div>
                             <div style="margin-top: 15px; font-size: 0.75rem; color: var(--primary);">👆 Click for breakdown</div>
-
+                            
                             <div id="freecash-breakdown" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--border); text-align: left; font-size: 0.85rem;">
                                 <div style="font-weight: 700; margin-bottom: 10px; color: var(--text);">Calculation:</div>
                                 <div style="display: flex; justify-content: space-between; margin: 5px 0;">
@@ -585,34 +591,34 @@
                     <span class="slider-label">💰 Down Payment</span>
                     <span class="slider-value" id="wi-down-val">$5,000</span>
                 </div>
-                <input type="range" id="wi-down" min="0" max="50000" step="500" value="5000">
+                <input type="range" id="wi-down" min="0" max="50000" step="500" value="0">
                 <div class="slider-bounds"><span>$0</span><span>$50,000</span></div>
             </div>
 
             <div class="slider-container">
                 <div class="slider-header">
                     <span class="slider-label">📊 Interest Rate (APR)</span>
-                    <span class="slider-value" id="wi-apr-val">8.0%</span>
+                    <span class="slider-value" id="wi-apr-val">0%</span>
                 </div>
-                <input type="range" id="wi-apr" min="0" max="20" step="0.1" value="8">
+                <input type="range" id="wi-apr" min="0" max="20" step="0.1" value="0">
                 <div class="slider-bounds"><span>0%</span><span>20%</span></div>
             </div>
 
             <div class="slider-container">
                 <div class="slider-header">
                     <span class="slider-label">📅 Loan Term</span>
-                    <span class="slider-value" id="wi-term-val">60 months</span>
+                    <span class="slider-value" id="wi-term-val">24 months</span>
                 </div>
-                <input type="range" id="wi-term" min="24" max="84" step="12" value="60">
+                <input type="range" id="wi-term" min="24" max="84" step="12" value="24">
                 <div class="slider-bounds"><span>24 months</span><span>84 months</span></div>
             </div>
 
             <div class="slider-container">
                 <div class="slider-header">
                     <span class="slider-label">🛡️ Monthly Insurance</span>
-                    <span class="slider-value" id="wi-ins-val">$150</span>
+                    <span class="slider-value" id="wi-ins-val">$0</span>
                 </div>
-                <input type="range" id="wi-ins" min="50" max="500" step="10" value="150">
+                <input type="range" id="wi-ins" min="50" max="500" step="10" value="0">
                 <div class="slider-bounds"><span>$50</span><span>$500</span></div>
             </div>
 
@@ -646,7 +652,7 @@
             <p style="font-size: 0.95rem; color: var(--subtext); margin-bottom: 25px;">
                 Save different vehicle configurations and compare them side-by-side
             </p>
-
+            
             <div id="scenario-list" class="scenario-grid">
                 <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; color: var(--subtext);">
                     <div style="font-size: 3rem; margin-bottom: 15px;">📋</div>
@@ -660,23 +666,24 @@
 
 <script>
     const fmt = (n) => new Intl.NumberFormat('en-US', {style:'currency', currency:'USD', maximumFractionDigits:0}).format(n);
-
+    
     let scenarios = [];
     let currentCalc = {};
-
+    
     function val(id) {
-        return parseFloat(document.getElementById(id).value) || 0;
+        const value = parseFloat(document.getElementById(id).value);
+        return isNaN(value) ? 0 : value;
     }
-
+    
     function switchTab(tabName) {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         event.target.classList.add('active');
         document.getElementById(tabName).classList.add('active');
-
+        
         if (tabName === 'scenarios') renderScenarios();
     }
-
+    
     function calculate() {
         const price = val('price');
         const tax = val('tax');
@@ -694,33 +701,33 @@
         const food = val('food');
         const savings = val('savings');
         const emergency = val('emergency');
-
+        
         const effectiveDown = down + tradeIn;
         const purchasePrice = price * (1 + tax/100);
         const principal = purchasePrice - effectiveDown;
         const monthlyRate = (apr/100) / 12;
-        const loanPayment = monthlyRate === 0 ? principal/term :
+        const loanPayment = monthlyRate === 0 ? principal/term : 
             principal * (monthlyRate * Math.pow(1 + monthlyRate, term)) / (Math.pow(1 + monthlyRate, term) - 1);
-
+        
         const totalCarPayment = loanPayment + gas + insurance + maint + misc;
         const totalExpenses = rent + bills + food + savings + totalCarPayment;
         const freeCash = income - totalExpenses;
         const carPct = (totalCarPayment / income) * 100;
-
+        
         const totalInterest = (loanPayment * term) - principal;
         const totalOwnership = (gas + insurance + maint + misc) * term;
         const grandTotal = effectiveDown + (loanPayment * term) + totalOwnership;
-
+        
         const monthlyExpenses = rent + bills + food + totalCarPayment;
         const efMonths = emergency / monthlyExpenses;
-
+        
         currentCalc = {
             loanPayment, gas, insurance, maint, misc, totalCarPayment,
             freeCash, carPct, effectiveDown, principal, totalInterest,
             totalOwnership, grandTotal, term, income, efMonths, apr,
             price, monthlyExpenses
         };
-
+        
         updatePaymentHero();
         updateVerdict();
         updateBudgetBar();
@@ -730,24 +737,24 @@
         updateSavingsComparison();
         syncWhatIf();
     }
-
+    
     function toggleBreakdown(id) {
         const el = document.getElementById(id);
         if (el) {
             el.style.display = el.style.display === 'block' ? 'none' : 'block';
         }
     }
-
+    
     function updateWealthAccumulation() {
         const c = currentCalc;
         const savingsGoal = val('savings');
         const freeCash = Math.max(0, c.freeCash);
         const term = c.term;
-
+        
         const savingsAccumulated = savingsGoal * term;
         const freeCashAccumulated = freeCash * term;
         const totalWealth = savingsAccumulated + freeCashAccumulated;
-
+        
         document.getElementById('wealth-term').textContent = term;
         document.getElementById('savings-accumulated').textContent = fmt(savingsAccumulated);
         document.getElementById('savings-monthly-detail').textContent = `${fmt(savingsGoal)}/month × ${term} months`;
@@ -755,7 +762,7 @@
         document.getElementById('freecash-monthly-detail').textContent = `${fmt(freeCash)}/month × ${term} months`;
         document.getElementById('total-wealth').textContent = fmt(totalWealth);
         document.getElementById('tw-savings').textContent = fmt(savingsAccumulated);
-
+        
         const freeCashNote = document.getElementById('tw-freecash-note');
         if (c.freeCash > 0) {
             freeCashNote.textContent = `plus ${fmt(freeCashAccumulated)} in additional free cash available for other goals`;
@@ -767,11 +774,11 @@
             freeCashNote.textContent = `⚠️ Warning: You have negative cash flow and won't be able to save`;
             freeCashNote.style.color = 'var(--danger)';
         }
-
+        
         document.getElementById('bd-savings-monthly').textContent = fmt(savingsGoal);
         document.getElementById('bd-savings-months').textContent = term;
         document.getElementById('bd-savings-total').textContent = fmt(savingsAccumulated);
-
+        
         document.getElementById('bd-income').textContent = fmt(c.income);
         document.getElementById('bd-rent').textContent = fmt(val('rent'));
         document.getElementById('bd-food').textContent = fmt(val('food'));
@@ -782,7 +789,7 @@
         document.getElementById('bd-freecash-months').textContent = term;
         document.getElementById('bd-freecash-total').textContent = fmt(freeCashAccumulated);
     }
-
+    
     function updatePaymentHero() {
         const c = currentCalc;
         document.getElementById('total-payment').textContent = fmt(c.totalCarPayment);
@@ -792,13 +799,13 @@
         document.getElementById('maint-cost').textContent = fmt(c.maint);
         document.getElementById('other-cost').textContent = fmt(c.misc);
     }
-
+    
     function updateVerdict() {
         const c = currentCalc;
         const verdictEl = document.getElementById('verdict');
-
+        
         let icon, title, text, className;
-
+        
         if (c.freeCash < 0) {
             icon = '🚨';
             title = 'Not Affordable - Negative Cash Flow';
@@ -830,7 +837,7 @@
             text = `This is a very affordable purchase for your income level. At only <strong>${c.carPct.toFixed(1)}%</strong> of your income with <strong>${fmt(c.freeCash)}</strong> left monthly, you'll have plenty of financial breathing room. This leaves you well-positioned to save, invest, and handle unexpected expenses.`;
             className = 'success';
         }
-
+        
         verdictEl.className = `verdict-card ${className}`;
         verdictEl.innerHTML = `
             <div class="verdict-header">
@@ -840,11 +847,11 @@
             <div class="verdict-text">${text}</div>
         `;
     }
-
+    
     function updateBudgetBar() {
         const c = currentCalc;
         const income = c.income;
-
+        
         const categories = [
             { label: 'Rent/Mortgage', value: val('rent'), color: '#64748b' },
             { label: 'Food & Groceries', value: val('food'), color: '#8b5cf6' },
@@ -853,15 +860,15 @@
             { label: 'Total Car Payment', value: c.totalCarPayment, color: '#38bdf8' },
             { label: 'Free Cash', value: Math.max(0, c.freeCash), color: c.freeCash > 0 ? '#ffffff' : '#f87171' }
         ];
-
+        
         const sorted = [...categories].sort((a, b) => b.value - a.value);
-
+        
         const barEl = document.getElementById('budget-bar');
         barEl.innerHTML = sorted.map(cat => {
             const pct = (cat.value / income) * 100;
             return `<div class="stack-segment" style="width: ${pct}%; background: ${cat.color}; color: ${cat.color === '#ffffff' ? '#000' : '#fff'};" title="${cat.label}: ${fmt(cat.value)} (${pct.toFixed(1)}%)"></div>`;
         }).join('');
-
+        
         const legendEl = document.getElementById('budget-legend');
         legendEl.innerHTML = categories.map(cat => {
             const pct = (cat.value / income) * 100;
@@ -875,19 +882,19 @@
                 </div>
             `;
         }).join('');
-
+        
         document.getElementById('income-label').textContent = `Monthly Income: ${fmt(income)}`;
     }
-
+    
     function updateCostBreakdown() {
         const c = currentCalc;
         const total = c.grandTotal;
-
+        
         const gasTotal = val('gas') * c.term;
         const insTotal = val('insurance') * c.term;
         const maintTotal = val('maint') * c.term;
         const miscTotal = val('misc') * c.term;
-
+        
         const tooltipEl = document.getElementById('ownership-tooltip');
         if (tooltipEl) {
             tooltipEl.innerHTML = `
@@ -898,29 +905,29 @@
                 • Other: ${fmt(val('misc'))}/mo × ${c.term} = ${fmt(miscTotal)}
             `;
         }
-
+        
         const items = [
             { id: 'down', value: c.effectiveDown },
             { id: 'principal', value: c.principal },
             { id: 'interest', value: c.totalInterest },
             { id: 'ownership', value: c.totalOwnership }
         ];
-
+        
         items.forEach(item => {
             const pct = (item.value / total) * 100;
             document.getElementById(`${item.id}-bar`).style.width = pct + '%';
             document.getElementById(`${item.id}-pct`).textContent = pct.toFixed(0) + '%';
             document.getElementById(`${item.id}-amount`).textContent = fmt(item.value);
         });
-
+        
         document.getElementById('grand-total').textContent = fmt(total);
         document.getElementById('loan-years').textContent = (c.term / 12).toFixed(1);
-
+        
         document.getElementById('compare-price').textContent = fmt(c.price);
         document.getElementById('compare-total').textContent = fmt(total);
         document.getElementById('compare-diff').textContent = fmt(total - c.price);
     }
-
+    
     function updateSavingsComparison() {
         const c = currentCalc;
         const totalCarSpent = c.totalCarPayment * c.term;
@@ -929,21 +936,21 @@
         const monthlyPayment = c.totalCarPayment;
         const futureValue = monthlyPayment * ((Math.pow(1 + monthlyRate, n) - 1) / monthlyRate);
         const opportunityCost = futureValue - totalCarSpent;
-
+        
         document.getElementById('with-car-value').textContent = fmt(totalCarSpent);
         document.getElementById('if-saved-value').textContent = fmt(futureValue);
         document.getElementById('opportunity-diff').textContent = fmt(opportunityCost);
         document.getElementById('monthly-to-save').textContent = fmt(monthlyPayment);
         document.getElementById('save-term').textContent = c.term;
     }
-
+    
     function updateHealthChecks() {
         const c = currentCalc;
-
+        
         const freeCashEl = document.getElementById('free-cash');
         const cashStatusEl = document.getElementById('cash-status');
         freeCashEl.textContent = fmt(c.freeCash);
-
+        
         if (c.freeCash < 0) {
             freeCashEl.style.color = 'var(--danger)';
             cashStatusEl.textContent = 'Critical';
@@ -961,11 +968,11 @@
             cashStatusEl.textContent = 'Healthy';
             cashStatusEl.className = 'health-status good';
         }
-
+        
         const carPctEl = document.getElementById('car-pct');
         const pctStatusEl = document.getElementById('pct-status');
         carPctEl.textContent = c.carPct.toFixed(1) + '%';
-
+        
         if (c.carPct > 30) {
             carPctEl.style.color = 'var(--danger)';
             pctStatusEl.textContent = 'Too High';
@@ -983,11 +990,11 @@
             pctStatusEl.textContent = 'Excellent';
             pctStatusEl.className = 'health-status good';
         }
-
+        
         const efMonthsEl = document.getElementById('ef-months');
         const efStatusEl = document.getElementById('ef-status');
         efMonthsEl.textContent = c.efMonths.toFixed(1) + ' mo';
-
+        
         if (c.efMonths < 1) {
             efMonthsEl.style.color = 'var(--danger)';
             efStatusEl.textContent = 'Critical';
@@ -1005,11 +1012,11 @@
             efStatusEl.textContent = 'Strong';
             efStatusEl.className = 'health-status good';
         }
-
+        
         const rateQualityEl = document.getElementById('rate-quality');
         const rateStatusEl = document.getElementById('rate-status');
         const rateDescEl = document.getElementById('rate-desc');
-
+        
         if (c.apr < 4) {
             rateQualityEl.textContent = 'Excellent';
             rateQualityEl.style.color = 'var(--success)';
@@ -1036,31 +1043,31 @@
             rateDescEl.textContent = 'High rate - work on credit or find better loan';
         }
     }
-
+    
     function syncWhatIf() {
         const wiDown = document.getElementById('wi-down');
         const wiApr = document.getElementById('wi-apr');
         const wiTerm = document.getElementById('wi-term');
         const wiIns = document.getElementById('wi-ins');
-
+        
         if (wiDown) wiDown.value = val('down');
         if (wiApr) wiApr.value = val('apr');
         if (wiTerm) wiTerm.value = val('term');
         if (wiIns) wiIns.value = val('insurance');
-
+        
         if (wiDown && wiApr && wiTerm && wiIns) {
             updateWhatIfDisplay();
             calculateWhatIf();
         }
     }
-
+    
     function updateWhatIfDisplay() {
         document.getElementById('wi-down-val').textContent = fmt(parseFloat(document.getElementById('wi-down').value));
         document.getElementById('wi-apr-val').textContent = parseFloat(document.getElementById('wi-apr').value).toFixed(1) + '%';
         document.getElementById('wi-term-val').textContent = document.getElementById('wi-term').value + ' months';
         document.getElementById('wi-ins-val').textContent = fmt(parseFloat(document.getElementById('wi-ins').value));
     }
-
+    
     function calculateWhatIf() {
         const price = val('price');
         const tax = val('tax');
@@ -1077,19 +1084,19 @@
         const bills = val('bills');
         const food = val('food');
         const savings = val('savings');
-
+        
         const effectiveDown = down + tradeIn;
         const principal = (price * (1 + tax/100)) - effectiveDown;
         const monthlyRate = (apr/100) / 12;
-        const loanPayment = monthlyRate === 0 ? principal/term :
+        const loanPayment = monthlyRate === 0 ? principal/term : 
             principal * (monthlyRate * Math.pow(1 + monthlyRate, term)) / (Math.pow(1 + monthlyRate, term) - 1);
-
+        
         const totalCarPayment = loanPayment + gas + insurance + maint + misc;
         const totalExpenses = rent + bills + food + savings + totalCarPayment;
         const freeCash = income - totalExpenses;
         const carPct = (totalCarPayment / income) * 100;
         const totalInterest = (loanPayment * term) - principal;
-
+        
         document.getElementById('wi-payment').textContent = fmt(totalCarPayment);
         document.getElementById('wi-cash').textContent = fmt(freeCash);
         document.getElementById('wi-cash').style.color = freeCash < 0 ? 'var(--danger)' : freeCash < 300 ? 'var(--warning)' : 'var(--success)';
@@ -1097,11 +1104,11 @@
         document.getElementById('wi-pct').textContent = carPct.toFixed(1) + '%';
         document.getElementById('wi-pct').style.color = carPct > 25 ? 'var(--danger)' : carPct > 20 ? 'var(--warning)' : 'var(--success)';
     }
-
+    
     function saveScenario() {
         const name = document.getElementById('car-name').value || `Scenario ${scenarios.length + 1}`;
         const c = currentCalc;
-
+        
         scenarios.push({
             name,
             price: val('price'),
@@ -1114,13 +1121,13 @@
             totalCost: c.grandTotal,
             totalInterest: c.totalInterest
         });
-
+        
         alert(`✅ Saved "${name}"!`);
     }
-
+    
     function renderScenarios() {
         const container = document.getElementById('scenario-list');
-
+        
         if (scenarios.length === 0) {
             container.innerHTML = `
                 <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; color: var(--subtext);">
@@ -1131,11 +1138,11 @@
             `;
             return;
         }
-
+        
         container.innerHTML = scenarios.map((s, i) => {
             const statusClass = s.freeCash < 0 ? 'bad' : s.freeCash < 300 ? 'warning' : 'good';
             const statusText = s.freeCash < 0 ? 'Not Affordable' : s.freeCash < 300 ? 'Tight' : s.carPct > 25 ? 'High Risk' : s.carPct > 20 ? 'Moderate' : 'Affordable';
-
+            
             return `
                 <div class="scenario-card">
                     <div class="scenario-name">${s.name}</div>
@@ -1169,12 +1176,12 @@
             `;
         }).join('');
     }
-
+    
     // Setup event listeners
     document.querySelectorAll('input, select').forEach(el => {
         if (el) el.addEventListener('input', calculate);
     });
-
+    
     ['wi-down', 'wi-apr', 'wi-term', 'wi-ins'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
@@ -1184,9 +1191,194 @@
             });
         }
     });
-
+    
+    // Load from URL if shared
+    loadFromURL();
+    
     // Initial calculation
     calculate();
+    
+    function shareResults() {
+        const params = new URLSearchParams();
+        
+        // Vehicle details
+        const carName = document.getElementById('car-name').value;
+        if (carName) params.set('name', carName);
+        params.set('price', val('price'));
+        params.set('tax', val('tax'));
+        params.set('down', val('down'));
+        params.set('tradein', val('tradein'));
+        
+        // Loan terms
+        params.set('apr', val('apr'));
+        params.set('term', val('term'));
+        
+        // Monthly costs
+        params.set('gas', val('gas'));
+        params.set('insurance', val('insurance'));
+        params.set('maint', val('maint'));
+        params.set('misc', val('misc'));
+        
+        // Personal finances
+        params.set('income', val('income'));
+        params.set('rent', val('rent'));
+        params.set('bills', val('bills'));
+        params.set('food', val('food'));
+        params.set('savings', val('savings'));
+        params.set('emergency', val('emergency'));
+        
+        // Create shareable URL
+        const shareURL = window.location.origin + window.location.pathname + '?' + params.toString();
+        
+        // Copy to clipboard
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(shareURL).then(() => {
+                showShareModal(shareURL);
+            }).catch(() => {
+                showShareModal(shareURL);
+            });
+        } else {
+            showShareModal(shareURL);
+        }
+    }
+    
+    function showShareModal(url) {
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.3s;
+        `;
+        
+        modal.innerHTML = `
+            <div style="background: var(--card); border-radius: 20px; padding: 40px; max-width: 600px; width: 90%; border: 2px solid var(--primary);">
+                <h2 style="margin: 0 0 20px 0; color: var(--primary); font-size: 1.5rem; border: none; padding: 0;">🔗 Share Your Results</h2>
+                <p style="color: var(--subtext); margin-bottom: 20px; line-height: 1.6;">
+                    Your results have been encoded into this link. Anyone with this link can see your exact scenario and analysis!
+                </p>
+                <div style="background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 15px; margin-bottom: 20px; word-break: break-all; font-size: 0.85rem; color: var(--text);">
+                    ${url}
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="copyShareURL('${url}')" class="btn btn-primary" style="flex: 1;">
+                        📋 Copy Link
+                    </button>
+                    <button onclick="closeShareModal()" class="btn btn-secondary" style="flex: 1;">
+                        Close
+                    </button>
+                </div>
+                <p style="color: var(--subtext); font-size: 0.8rem; margin-top: 15px; margin-bottom: 0;">
+                    💡 Tip: The link contains all your inputs but no personal identifying information.
+                </p>
+            </div>
+        `;
+        
+        modal.onclick = (e) => {
+            if (e.target === modal) closeShareModal();
+        };
+        
+        document.body.appendChild(modal);
+    }
+    
+    function copyShareURL(url) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = event.target;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✅ Copied!';
+                btn.style.background = 'var(--success)';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.background = 'var(--primary)';
+                }, 2000);
+            });
+        } else {
+            // Fallback for older browsers
+            const textarea = document.createElement('textarea');
+            textarea.value = url;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                alert('Link copied to clipboard!');
+            } catch (err) {
+                alert('Please copy the link manually');
+            }
+            document.body.removeChild(textarea);
+        }
+    }
+    
+    function closeShareModal() {
+        const modal = document.querySelector('div[style*="position: fixed"]');
+        if (modal) modal.remove();
+    }
+    
+    function loadFromURL() {
+        const params = new URLSearchParams(window.location.search);
+        
+        if (params.toString()) {
+            // Vehicle details
+            if (params.has('name')) document.getElementById('car-name').value = params.get('name');
+            if (params.has('price')) document.getElementById('price').value = params.get('price');
+            if (params.has('tax')) document.getElementById('tax').value = params.get('tax');
+            if (params.has('down')) document.getElementById('down').value = params.get('down');
+            if (params.has('tradein')) document.getElementById('tradein').value = params.get('tradein');
+            
+            // Loan terms
+            if (params.has('apr')) document.getElementById('apr').value = params.get('apr');
+            if (params.has('term')) document.getElementById('term').value = params.get('term');
+            
+            // Monthly costs
+            if (params.has('gas')) document.getElementById('gas').value = params.get('gas');
+            if (params.has('insurance')) document.getElementById('insurance').value = params.get('insurance');
+            if (params.has('maint')) document.getElementById('maint').value = params.get('maint');
+            if (params.has('misc')) document.getElementById('misc').value = params.get('misc');
+            
+            // Personal finances
+            if (params.has('income')) document.getElementById('income').value = params.get('income');
+            if (params.has('rent')) document.getElementById('rent').value = params.get('rent');
+            if (params.has('bills')) document.getElementById('bills').value = params.get('bills');
+            if (params.has('food')) document.getElementById('food').value = params.get('food');
+            if (params.has('savings')) document.getElementById('savings').value = params.get('savings');
+            if (params.has('emergency')) document.getElementById('emergency').value = params.get('emergency');
+            
+            // Show notification that data was loaded
+            setTimeout(() => {
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: var(--success);
+                    color: #000;
+                    padding: 15px 25px;
+                    border-radius: 10px;
+                    font-weight: 700;
+                    z-index: 10000;
+                    animation: fadeIn 0.3s;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                `;
+                notification.textContent = '✅ Loaded shared scenario!';
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.animation = 'fadeOut 0.3s';
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+            }, 500);
+        }
+    }
+
 </script>
 
 </body>
